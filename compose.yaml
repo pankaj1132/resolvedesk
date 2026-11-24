@@ -19,14 +19,12 @@ services:
         - action: sync
           path: ./web/src
           target: /app/src
-          initial_sync: true
           ignore:
             - generated/prisma/
 
         - action: sync
           path: ./web/public
           target: /app/public
-          initial_sync: true
 
         - action: rebuild
           path: ./web/package.json
