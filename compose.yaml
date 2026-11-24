@@ -1,0 +1,44 @@
+name: resolvedesk
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+
+    init: true
+
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    env_file:
+      - ./web/.env
+
+    develop:
+      watch:
+        - action: sync
+          path: ./web/src
+          target: /app/src
+          initial_sync: true
+          ignore:
+            - generated/prisma/
+
+        - action: sync
+          path: ./web/public
+          target: /app/public
+          initial_sync: true
+
+        - action: rebuild
+          path: ./web/package.json
+
+        - action: rebuild
+          path: ./web/package-lock.json
+
+        - action: rebuild
+          path: ./web/prisma
+
+        - action: rebuild
+          path: ./web/prisma7.config.ts
+
+        - action: rebuild
+          path: ./web/next.config.ts
