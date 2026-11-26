@@ -1,26 +1,160 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f2f5f1;
+  --foreground: #172820;
+  --muted: #506057;
+  --border: #d6dfd8;
+  --brand: #175844;
+  --brand-hover: #104633;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.auth-shell {
+  display: grid;
+  width: min(100%, 31rem);
+  min-height: 100svh;
+  align-content: center;
+  justify-items: start;
+  gap: 1.25rem;
+  margin-inline: auto;
+  padding: 2rem 1.25rem;
+}
+
+.brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: var(--brand);
+  color: white;
+}
+
+.account-card {
+  width: 100%;
+  padding: clamp(1.25rem, 5vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: white;
+  box-shadow: 0 12px 32px rgb(23 40 32 / 6%);
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.auth-field input,
+.auth-field select,
+.auth-field textarea {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #9aa99f;
+  border-radius: 0.6rem;
+  background: white;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.auth-field textarea {
+  resize: vertical;
+}
+
+.auth-button {
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.auth-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.auth-button-primary {
+  background: var(--brand);
+  color: white;
+}
+
+.auth-button-primary:hover:enabled {
+  background: var(--brand-hover);
+}
+
+.auth-button-secondary {
+  border-color: #9aa99f;
+  background: white;
+}
+
+.auth-button-secondary:hover:enabled {
+  background: var(--background);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+  content: "";
+}
+
+.auth-link {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.form-error {
+  color: #9f241b;
+  font-size: 0.875rem;
+}
+
+.account-detail {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--background);
+}
+
+.account-detail dt {
+  margin-bottom: 0.25rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.account-detail dd {
+  overflow-wrap: anywhere;
+  font-weight: 600;
 }

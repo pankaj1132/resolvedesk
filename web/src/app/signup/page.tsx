@@ -1,9 +1,8 @@
-import { redirect } from "next/navigation";
-import { AuthForm } from "@/components/auth-form";
-import { googleEnabled } from "@/lib/auth";
-import { getSession } from "@/lib/session";
+import type { Metadata } from "next";
+import { AuthScreen } from "@/components/auth/auth-screen";
 
-export default async function SignupPage() {
-  if (await getSession()) redirect("/dashboard");
-  return <AuthForm mode="signup" googleEnabled={googleEnabled} />;
+export const metadata: Metadata = { title: "Create account" };
+
+export default function SignupPage({ searchParams }: PageProps<"/signup">) {
+  return <AuthScreen mode="signup" searchParams={searchParams} />;
 }

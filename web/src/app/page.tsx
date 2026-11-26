@@ -1,5 +1,6 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/session";
 
-export default function HomePage() {
-  redirect("/dashboard");
+export default async function Home() {
+  redirect((await getSession()) ? "/dashboard" : "/login");
 }

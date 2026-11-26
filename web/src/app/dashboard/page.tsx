@@ -1,21 +1,43 @@
-import { LogoutButton } from "@/components/logout-button";
+import type { Metadata } from "next";
+import { ResolveDeskBrand } from "@/components/resolve-desk-brand";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { WorkspaceCreateForm } from "@/components/workspaces/workspace-create-form";
+import { WorkspaceList } from "@/components/workspaces/workspace-list";
 import { requireSession } from "@/lib/session";
+import { listWorkspaces } from "@/lib/workspaces";
+
+export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const { user } = await requireSession();
+  const memberships = await listWorkspaces(user.id);
+
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-8 text-slate-900">
-      <div className="mx-auto max-w-5xl">
-        <header className="flex items-center justify-between gap-4 border-b border-slate-200 pb-6">
-          <span className="text-xl font-bold tracking-tight text-indigo-700">ResolveDesk</span>
-          <LogoutButton />
-        </header>
-        <section className="mt-12 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <p className="text-sm font-medium text-indigo-600">Your account</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Welcome, {user.name}</h1>
-          <p className="mt-3 break-all text-slate-600">{user.email}</p>
-        </section>
-      </div>
+    <main className="mx-auto w-full max-w-4xl px-5 py-8 sm:py-12">
+      <header className="mb-10 flex flex-wrap items-start justify-between gap-4">
+        <ResolveDeskBrand />
+        <LogoutButton />
+      </header>
+      <section className="account-card mb-6 grid gap-5" aria-labelledby="workspaces-heading">
+        <h1 id="workspaces-heading" className="text-3xl font-semibold tracking-tight">
+          Your workspaces
+        </h1>
+        <WorkspaceList memberships={memberships} />
+        <WorkspaceCreateForm />
+      </section>
+      <section className="account-card" aria-labelledby="account-heading">
+        <h2 id="account-heading" className="text-xl font-semibold tracking-tight">Your account</h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="account-detail">
+            <dt>Name</dt>
+            <dd>{user.name}</dd>
+          </div>
+          <div className="account-detail">
+            <dt>Email</dt>
+            <dd>{user.email}</dd>
+          </div>
+        </dl>
+      </section>
     </main>
   );
 }

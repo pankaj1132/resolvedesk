@@ -1,12 +1,8 @@
-import { redirect } from "next/navigation";
-import { AuthForm } from "@/components/auth-form";
-import { googleEnabled } from "@/lib/auth";
-import { getSession } from "@/lib/session";
+import type { Metadata } from "next";
+import { AuthScreen } from "@/components/auth/auth-screen";
 
-export default async function LoginPage({ searchParams }: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  if (await getSession()) redirect("/dashboard");
-  const params = await searchParams;
-  return <AuthForm mode="login" googleEnabled={googleEnabled} googleError={Boolean(params.error)} />;
+export const metadata: Metadata = { title: "Sign in" };
+
+export default function LoginPage({ searchParams }: PageProps<"/login">) {
+  return <AuthScreen mode="login" searchParams={searchParams} />;
 }
