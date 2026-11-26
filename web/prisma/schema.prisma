@@ -8,9 +8,252 @@ datasource db {
 }
 
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
+  id                String                @id @default(cuid())
+  name              String
+  slug              String                @unique
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  memberships       WorkspaceMembership[]
+  invitations       WorkspaceInvitation[]
+  tickets           Ticket[]
+  slaPolicies       WorkspaceSlaPolicy[]
+  knowledgeArticles KnowledgeArticle[]
+}
+
+model User {
+  id                  String                @id
+  name                String
+  email               String                @unique
+  emailVerified       Boolean               @default(false)
+  image               String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  sessions            Session[]
+  accounts            Account[]
+  memberships         WorkspaceMembership[]
+  requestedTickets    Ticket[]              @relation("TicketRequester")
+  assignedTickets     Ticket[]              @relation("TicketAssignee")
+  ticketMessages      TicketMessage[]
+  ticketAttachments   TicketAttachment[]
+  ticketActivities    TicketActivity[]
+  ticketNotifications TicketNotification[]
+  knowledgeArticles   KnowledgeArticle[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+enum WorkspaceRole {
+  OWNER
+  AGENT
+  REQUESTER
+}
+
+model WorkspaceMembership {
+  organizationId String
+  userId         String
+  role           WorkspaceRole
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, userId])
+  @@index([userId])
+}
+
+model WorkspaceInvitation {
+  organizationId String
+  email          String
+  role           WorkspaceRole
+  tokenHash      String        @unique
+  expiresAt      DateTime
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, email])
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_ON_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Ticket {
+  id                 String               @id @default(cuid())
+  organizationId     String
+  requesterId        String
+  assigneeId         String?
+  title              String
+  description        String
+  status             TicketStatus         @default(OPEN)
+  priority           TicketPriority       @default(NORMAL)
+  tags               String[]             @default([])
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  responseDueAt      DateTime             @default(dbgenerated("(CURRENT_TIMESTAMP + '08:00:00'::interval)"))
+  resolutionDueAt    DateTime             @default(dbgenerated("(CURRENT_TIMESTAMP + '2 days'::interval)"))
+  resolutionOverride Boolean              @default(false)
+  firstResponseAt    DateTime?
+  resolvedAt         DateTime?
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requester          User                 @relation("TicketRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  assignee           User?                @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  messages           TicketMessage[]
+  attachments        TicketAttachment[]
+  activities         TicketActivity[]
+  notifications      TicketNotification[]
+
+  @@index([organizationId, updatedAt, id])
+  @@index([organizationId, requesterId, updatedAt, id])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, status, responseDueAt])
+  @@index([organizationId, status, resolutionDueAt])
+  @@index([organizationId, assigneeId, updatedAt, id])
+  @@index([tags], type: Gin)
+}
+
+model TicketMessage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  authorId  String
+  body      String
+  internal  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt, id])
+}
+
+model TicketAttachment {
+  id        String   @id @default(cuid())
+  ticketId  String
+  authorId  String
+  fileName  String
+  byteSize  Int
+  data      Bytes
+  internal  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, internal, createdAt, id])
+}
+
+model TicketActivity {
+  id        String   @id @default(cuid())
+  ticketId  String
+  actorId   String
+  summary   String
+  internal  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor     User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt, id])
+}
+
+model WorkspaceSlaPolicy {
+  organizationId  String
+  priority        TicketPriority
+  responseHours   Int
+  resolutionHours Int
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, priority])
+}
+
+model TicketNotification {
+  id        String    @id @default(cuid())
+  ticketId  String
+  userId    String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  ticket    Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([ticketId])
+}
+
+enum KnowledgeVisibility {
+  INTERNAL
+  CUSTOMER
+}
+
+model KnowledgeArticle {
+  id                  String               @id @default(cuid())
+  organizationId      String
+  authorId            String
+  title               String
+  body                String
+  visibility          KnowledgeVisibility  @default(INTERNAL)
+  revision            Int                  @default(0)
+  publishedTitle      String?
+  publishedBody       String?
+  publishedVisibility KnowledgeVisibility?
+  publishedAt         DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  author              User                 @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, updatedAt, id])
+  @@index([organizationId, publishedVisibility, publishedAt, id])
 }

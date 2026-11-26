@@ -6,6 +6,7 @@ import { PrismaClient } from "@/generated/prisma/client";
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
+const connectionTimeoutMillis = 15_000;
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -16,10 +17,13 @@ function createPrismaClient() {
 
   const adapter = new PrismaPg({
     connectionString,
-    connectionTimeoutMillis: 15000,
+    connectionTimeoutMillis,
   });
 
-  return new PrismaClient({ adapter });
+  return new PrismaClient({
+    adapter,
+    transactionOptions: { maxWait: connectionTimeoutMillis },
+  });
 }
 
 export const db =

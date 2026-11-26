@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ResolveDesk
 
-## Getting Started
+## Run locally
 
-First, run the development server:
+From the `web` directory, install the dependencies and set `DATABASE_URL`, `DIRECT_URL`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` in `.env`. Use `http://localhost:3000` for the local auth URL and a secret of at least 32 characters.
 
-```bash
+```powershell
+npm ci
+npx prisma migrate deploy --config=prisma7.config.ts
+npx prisma generate --config=prisma7.config.ts
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). You can create an account at `/signup` or sign in at `/login`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+On the dashboard, choose **Create workspace**. As its owner, you can create a private link for an Agent or Requester and share it with the invited address. The link expires in 48 hours, works once, and must be accepted while signed in with that address. Creating another link for the same workspace and email replaces the earlier link.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open a workspace and choose **View tickets**. Requesters can submit issues and view or reply to their own tickets. Owners and Agents can work the shared inbox, set priority and status, assign tickets to workspace staff, and post private notes. A requester reply reopens a ticket that was waiting on the customer or marked resolved.
 
-## Learn More
+Staff can filter the inbox by **Assigned to me**, **Unassigned**, and staff-only ticket tags. Resolve a ticket before closing it. Closed tickets retain their conversation and attachments. Staff can reopen them to allow new replies and uploads. Closed tickets stay out of active backlog and SLA escalations, while recorded resolution times still count in reports.
 
-To learn more about Next.js, take a look at the following resources:
+Tickets accept PDF, PNG, JPEG and UTF-8 text attachments up to 5 MB each. Each ticket supports 10 requester-visible files and 10 staff-only files. Ticket history includes existing replies and notes, uploads and new status changes. Assignment changes and priority history are visible to staff.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Operations** shows live SLA escalations and workspace reports to Owners and Agents. Owners can edit first-response and resolution targets per priority. The defaults are Low 24h/96h, Normal 8h/48h, High 4h/24h, and Urgent 1h/8h. All targets use elapsed calendar hours. Policy edits affect future tickets and recalculated deadlines. Staff can override an individual resolution deadline. Requester replies and attachments can reopen a ticket while keeping its original timeline and SLA clock.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Notifications** lists ticket events in the app. Workspace owners get new-ticket notifications, assignees get assignment notifications, and assignees or owners get requester replies and attachments. Requesters get public staff replies, public attachments and status updates. The staff inbox evaluates SLA escalations when opened. Reports show all active backlog and overdue tickets, with timing averages for tickets opened in the last 30 days. First response means the first public support reply from a staff member other than the requester. Resolution uses the latest recorded resolution of a currently resolved ticket.
 
-## Deploy on Vercel
+For Google sign-in, set both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`. In the Google OAuth web client, register `http://localhost:3000` as an authorized origin and `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+With the app running, `node --env-file=.env scripts/auth-smoke.mjs` checks signed-out access to the dashboard, login page, and session endpoint.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Knowledge Base** lets Owners and Agents create plain-text drafts, publish articles for staff or customers, and unpublish live articles. Saving a draft preserves the published version until staff publish again. Requesters can search and read only customer-facing articles published in their own workspace. In a public ticket reply, staff can use **Find articles** and **Add link** to share a published customer-facing article.
